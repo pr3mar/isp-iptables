@@ -141,28 +141,34 @@ iptables -A OUTPUT -p tcp --sport 22 -j ACCEPT
 ################
 ### HTTP settings
 ### (4) TODO: Allow outgoing HTTP connections
-
+iptables -A OUTPUT -p tcp --dport 80 -j ACCEPT
+iptables -A INPUT -p tcp --sport 80 -j ACCEPT
 
 ### (5) TODO: Allow incoming HTTP connections
-
+iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+iptables -A OUTPUT -p tcp --sport 80 -j ACCEPT
 
 ################
 ### HTTPS settings
 ### (6) TODO: Allow outgoing HTTPS connections
-
+iptables -A OUTPUT -p tcp --dport 443 -j ACCEPT
+iptables -A INPUT -p tcp --sport 443 -j ACCEPT
 
 ### (7) TODO: Allow incoming HTTPS connections
-
+iptables -A INPUT -p tcp --dport 443 -j ACCEPT
+iptables -A OUTPUT -p tcp --sport 443 -j ACCEPT
 
 #################
 ### ICMP settings
 ### (8) TODO: Allow outgoing ping requests (and corresponding ping replies)
 ### Hint: use protocol icmp and set the type of the message to either request
 ### or reply.
-
+iptables -A OUTPUT -p icmp --icmp-type echo-request -j ACCEPT
+iptables -A INPUT -p icmp --icmp-type echo-reply -j ACCEPT
 
 ### (9) TODO: Allow incoming pings from trusted hosts given in variable $MY_ISP
-
+iptables -A INPUT -p icmp --icmp-type echo-request -d $MY_ISP -j ACCEPT
+iptables -A OUTPUT -p icmp --icmp-type echo-reply -d $MY_ISP -j ACCEPT
 }
 
 #
