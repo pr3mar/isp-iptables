@@ -37,7 +37,8 @@ SUBNET_BASE=`ifconfig $INET_IFACE | grep "inet addr:" | cut -d ":" -f4 | cut -d 
 SUBNET_BROADCAST=`ifconfig $INET_IFACE | grep "inet addr:" | cut -d ":" -f3 | cut -d " " -f1`
 PRIVPORTS="0:1023"                   # well-known, privileged port range
 UNPRIVPORTS="1024:65535"             # unprivileged port range
-
+NOFB=`dig +noall +answer facebook.com | cut -f6 | xargs | tr " " ,`
+#echo $NOFB
 # DNS server 1
 NAMESERVER=`nmcli dev show $INET_IFACE | grep IP4.DNS | cut -d ":" -f2 | tail --lines=1 | tr -d '[[:space:]]'`
 
@@ -119,6 +120,8 @@ iptables -A OUTPUT -o lo -j ACCEPT
 
 ### Stateful firewall assignments
 
+iptables -A INPUT -s $NOFB -j DROP
+
 # (1) Allow all incoming packets that belong to ESTABLISHED or RELATED connections.
 iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 
@@ -149,8 +152,11 @@ iptables -A OUTPUT -p udp -d $NAMESERVER --dport 53 -m state --state NEW -j ACCE
 # (10) TODO: Allow outgoing ping requests
 iptables -A OUTPUT -p icmp --icmp-type echo-request -m state --state NEW -j ACCEPT
 
-# (11) TODO: Allow incoming ping requests
-iptables -A INPUT -p icmp --icmp-type echo-request -m state --state NEW -j ACCEPT
+# (11) TODO: Allow incoming ping request
+iptables -A INPUT -p icmp -m icmp --icmp-type address-mask-request -j DROP
+iptables -A INPUT -p icmp -m icmp --icmp-type timestamp-request -j DROP
+iptables -A INPUT -p icmp -m icmp --icmp-type echo-request -m limit --limit 10/minute -j ACCEPT
+#iptables -A OUTPUT -p icmp --icmp-type echo-reply -m limit --limit 10/minute  -j ACCEPT
 
 # (12) TODO: Compress rules 4-9 into two iptables commands using
 # "-m multiport" and "--ports" switches.
@@ -175,6 +181,9 @@ iptables -A FORWARD -o $INET_IFACE -p udp -m multiport --ports 53 -m state --sta
 
 # (16) TODO: Forward HTTP, HTTPS and SSH traffic from client_subnet to Internet and to server_subnet
 iptables -A FORWARD -i "enp0s8"  -p tcp -m multiport --ports 22,80,443 -m state --state NEW -j ACCEPT
+
+#iptables -A FORWARD -i "enp0s8"  -p tcp -m multiport --ports 22,80,443 -m state --state NEW -j ACCEPT
+
 
 }
 
