@@ -167,7 +167,7 @@ iptables -A OUTPUT -p icmp --icmp-type echo-request -j ACCEPT
 iptables -A INPUT -p icmp --icmp-type echo-reply -j ACCEPT
 
 ### (9) TODO: Allow incoming pings from trusted hosts given in variable $MY_ISP
-iptables -A INPUT -p icmp --icmp-type echo-request -d $MY_ISP -j ACCEPT
+iptables -A INPUT -p icmp --icmp-type echo-request -s $MY_ISP -j ACCEPT
 iptables -A OUTPUT -p icmp --icmp-type echo-reply -d $MY_ISP -j ACCEPT
 }
 
